@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generator Link Undangan - Fadlan & Sofi</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        sage: {
+                            50: '#F4F7F4',
+                            100: '#E4ECE5',
+                            500: '#5F7C68',
+                            800: '#2A382E',
+                            900: '#1E2821',
+                        },
+                        gold: {
+                            300: '#E9CE8A',
+                            500: '#D4AF37',
+                            600: '#C5A028',
+                        },
+                        cream: {
+                            50: '#FDFBF7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-sage-50 min-h-screen py-10 px-4 antialiased selection:bg-sage-200 selection:text-sage-800">
+    
+    <div class="max-w-2xl w-full mx-auto space-y-6">
+        <!-- Card Utama Generator -->
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-sage-100">
+            <!-- Header -->
+            <div class="bg-gradient-to-b from-sage-900 to-sage-800 p-6 sm:p-8 text-center relative overflow-hidden">
+                <div class="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gold-500/10 blur-xl"></div>
+                <div class="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-gold-500/10 blur-xl"></div>
+                
+                <h1 class="text-2xl sm:text-3xl font-bold text-gold-300 mb-2 relative z-10">Kirim Undangan</h1>
+                <p class="text-sage-100 text-sm relative z-10">Pernikahan Fadlan & Sofi</p>
+            </div>
+            
+            <div class="p-6 sm:p-8 space-y-6">
+                <!-- Input Form -->
+                <div>
+                    <label for="guestName" class="block text-sm font-semibold text-sage-800 mb-2">Nama Tamu & Gelar</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-regular fa-user text-sage-400"></i>
+                        </div>
+                        <input type="text" id="guestName" placeholder="Contoh: Bpk. Budi Santoso" 
+                            class="w-full pl-11 pr-4 py-3.5 rounded-xl border-2 border-sage-100 focus:border-sage-500 focus:ring-0 outline-none transition-colors text-sage-900 placeholder-sage-300 font-medium">
+                    </div>
+                    <p class="text-xs text-sage-500 mt-2 ml-1"><i class="fa-solid fa-circle-info mr-1 text-gold-500"></i>Ketik nama lengkap tamu beserta sapaan/gelarnya.</p>
+                </div>
+
+                <!-- Preview Link -->
+                <div class="bg-sage-50 p-4 rounded-xl border border-sage-100">
+                    <p class="text-xs font-semibold text-sage-600 mb-2 uppercase tracking-wider">Hasil Link Undangan:</p>
+                    <div class="flex items-center gap-2">
+                        <div class="flex-1 overflow-x-auto bg-white p-3 rounded-lg border border-sage-200">
+                            <code id="linkPreview" class="text-sm text-sage-800 whitespace-nowrap">https://shfdln.my.id/?to=</code>
+                        </div>
+                        <button onclick="copyLink()" class="p-3 bg-sage-800 text-white rounded-lg hover:bg-sage-900 transition-colors shrink-0" title="Salin Link">
+                            <i class="fa-regular fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Kirim WhatsApp Button -->
+                <div class="pt-2">
+                    <button onclick="sendToWhatsApp()" 
+                        class="w-full flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1DA851] text-white font-bold py-4 px-6 rounded-xl transition-all active:scale-95 shadow-lg shadow-green-500/20">
+                        <i class="fa-brands fa-whatsapp text-2xl"></i>
+                        <span class="text-base tracking-wide">Kirim ke WhatsApp</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card Riwayat Tamu yang Telah Dibuat -->
+        <div class="bg-white rounded-3xl shadow-xl overflow-hidden border border-sage-100 p-6 sm:p-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-sage-800 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-gold-600"></i>
+                    <span>Riwayat Tamu Ter-generate</span>
+                </h3>
+                <span id="guestCount" class="text-xs bg-sage-100 text-sage-800 font-semibold px-2.5 py-1 rounded-full">0 Tamu</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-sage-100 text-xs font-semibold text-sage-500 uppercase">
+                            <th class="py-3 px-3">Nama Tamu</th>
+                            <th class="py-3 px-3 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="guestTableBody" class="divide-y divide-sage-50 text-sm">
+                        <!-- Data akan dimasukkan lewat Javascript -->
+                        <tr>
+                            <td colspan="2" class="text-center py-6 text-sage-400 italic">Belum ada riwayat tamu.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-sage-900 text-cream-50 px-6 py-3 rounded-full shadow-2xl text-sm font-medium opacity-0 pointer-events-none transition-all duration-300 transform translate-y-4 z-50">
+        <i class="fa-solid fa-check-circle text-gold-500 mr-2"></i>
+        <span id="toastMessage">Link berhasil disalin!</span>
+    </div>
+
+    <script>
+        const baseUrl = 'https://shfdln.my.id/';
+        const guestNameInput = document.getElementById('guestName');
+        const linkPreview = document.getElementById('linkPreview');
+        const guestTableBody = document.getElementById('guestTableBody');
+        const guestCount = document.getElementById('guestCount');
+
+        // Ambil data riwayat dari LocalStorage saat halaman dimuat
+        let guestHistory = JSON.parse(localStorage.getItem('wedding_guests')) || [];
+
+        function getFormattedName() {
+            return guestNameInput.value.trim();
+        }
+
+        function getGeneratedLink(name) {
+            if (!name) return `${baseUrl}?to=`;
+            const encodedName = encodeURIComponent(name).replace(/%20/g, '+');
+            return `${baseUrl}?to=${encodedName}`;
+        }
+
+        guestNameInput.addEventListener('input', () => {
+            const name = getFormattedName();
+            linkPreview.textContent = getGeneratedLink(name);
+        });
+
+        function copyLink() {
+            const name = getFormattedName();
+            if (!name) {
+                showToast('Silakan masukkan nama tamu terlebih dahulu!', false);
+                return;
+            }
+            const link = getGeneratedLink(name);
+            
+            navigator.clipboard.writeText(link).then(() => {
+                saveGuest(name);
+                showToast('Link berhasil disalin & disimpan!', true);
+            }).catch(() => {
+                showToast('Gagal menyalin link.', false);
+            });
+        }
+
+        function sendToWhatsApp() {
+            const name = getFormattedName();
+            if (!name) {
+                showToast('Silakan masukkan nama tamu terlebih dahulu!', false);
+                return;
+            }
+
+            saveGuest(name);
+            triggerWhatsApp(name);
+        }
+
+        // Fungsi khusus untuk memicu pengiriman WhatsApp berdasarkan nama tertentu
+        function triggerWhatsApp(name) {
+            const link = getGeneratedLink(name);
+            const caption = `Assalamu'alaikum Warahmatullahi Wabarakatuh.
+Bismillahirahmanirrahim.
+
+Kepada Yth. Bapak/Ibu/Saudara/i,
+*${name}*
+
+Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu pada acara pernikahan kami:
+
+*Fadlan & Sofi*
+Rabu, 02 September 2026
+
+Berikut adalah tautan undangan pernikahan digital kami:
+${link}
+
+Merupakan suatu kehormatan dan kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan hadir di hari bahagia kami.
+
+Atas doa dan restunya kami ucapkan terima kasih.
+Wassalamu'alaikum Warahmatullahi Wabarakatuh.
+
+Hormat kami,
+*Fadlan & Sofi*`;
+
+            const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(caption)}`;
+            window.open(waUrl, '_blank');
+        }
+
+        // Menyimpan data ke LocalStorage dan memperbarui tabel
+        function saveGuest(name) {
+            // Cek apakah nama sudah ada (opsional, agar tidak duplikat persis)
+            const existingIndex = guestHistory.findIndex(item => item.toLowerCase() === name.toLowerCase());
+            if (existingIndex !== -1) {
+                // Pindahkan ke urutan paling atas jika sudah ada
+                guestHistory.splice(existingIndex, 1);
+            }
+            guestHistory.unshift(name); // Tambah ke awal array
+            
+            localStorage.setItem('wedding_guests', JSON.stringify(guestHistory));
+            renderTable();
+        }
+
+        // Menghapus data dari riwayat
+        function deleteGuest(index) {
+            guestHistory.splice(index, 1);
+            localStorage.setItem('wedding_guests', JSON.stringify(guestHistory));
+            renderTable();
+            showToast('Data tamu berhasil dihapus.', true);
+        }
+
+        // Mengirim ulang WhatsApp langsung dari baris tabel riwayat
+        function resendWhatsApp(name) {
+            triggerWhatsApp(name);
+        }
+
+        // Render data ke dalam tabel HTML
+        function renderTable() {
+            guestCount.textContent = `${guestHistory.length} Tamu`;
+            
+            if (guestHistory.length === 0) {
+                guestTableBody.innerHTML = `<tr><td colspan="2" class="text-center py-6 text-sage-400 italic">Belum ada riwayat tamu.</td></tr>`;
+                return;
+            }
+
+            let html = '';
+            guestHistory.forEach((name, index) => {
+                html += `
+                    <tr class="hover:bg-sage-50/50 transition-colors">
+                        <td class="py-3 px-3 font-medium text-sage-800 break-all">${escapeHtml(name)}</td>
+                        <td class="py-3 px-3 text-right space-x-1 whitespace-nowrap">
+                            <button onclick="resendWhatsApp('${escapeQuotes(name)}')" class="p-2 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors" title="Kirim Ulang WhatsApp">
+                                <i class="fa-brands fa-whatsapp"></i>
+                            </button>
+                            <button onclick="deleteGuest(${index})" class="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Hapus Data">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            guestTableBody.innerHTML = html;
+        }
+
+        // Fungsi utilitas keamanan kecil untuk string HTML
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+        function escapeQuotes(text) {
+            return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        let toastTimeout;
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const icon = toast.querySelector('i');
+            
+            toastMessage.textContent = message;
+            if (isSuccess) {
+                icon.className = 'fa-solid fa-check-circle text-gold-500 mr-2';
+            } else {
+                icon.className = 'fa-solid fa-circle-exclamation text-red-400 mr-2';
+            }
+
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+            }, 3000);
+        }
+
+        // Render tabel saat pertama kali halaman dibuka
+        renderTable();
+    </script>
+</body>
+</html>
