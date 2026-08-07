@@ -54,7 +54,7 @@
             </div>
             
             <div class="p-6 sm:p-8 space-y-6">
-                <!-- Input Form -->
+                <!-- Input Nama Tamu -->
                 <div>
                     <label for="guestName" class="block text-sm font-semibold text-sage-800 mb-2">Nama Tamu & Gelar</label>
                     <div class="relative">
@@ -67,12 +67,30 @@
                     <p class="text-xs text-sage-500 mt-2 ml-1"><i class="fa-solid fa-circle-info mr-1 text-gold-500"></i>Ketik nama lengkap tamu beserta sapaan/gelarnya.</p>
                 </div>
 
+                <!-- Input Pilihan Tanggal Acara -->
+                <div>
+                    <label for="eventDate" class="block text-sm font-semibold text-sage-800 mb-2">Pilihan Tanggal Acara</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fa-regular fa-calendar text-sage-400"></i>
+                        </div>
+                        <select id="eventDate" class="w-full pl-11 pr-4 py-3.5 rounded-xl border-2 border-sage-100 focus:border-sage-500 focus:ring-0 outline-none transition-colors text-sage-900 font-medium bg-white appearance-none">
+                            <option value="3">Rabu, 02 September 2026</option>
+                            <option value="2">Selasa, 01 September 2026</option>
+                            <option value="1">Senin, 31 Agustus 2026</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                            <i class="fa-solid fa-chevron-down text-xs text-sage-400"></i>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Preview Link -->
                 <div class="bg-sage-50 p-4 rounded-xl border border-sage-100">
                     <p class="text-xs font-semibold text-sage-600 mb-2 uppercase tracking-wider">Hasil Link Undangan:</p>
                     <div class="flex items-center gap-2">
                         <div class="flex-1 overflow-x-auto bg-white p-3 rounded-lg border border-sage-200">
-                            <code id="linkPreview" class="text-sm text-sage-800 whitespace-nowrap">https://shfdln.my.id/?to=</code>
+                            <code id="linkPreview" class="text-sm text-sage-800 whitespace-nowrap">https://shfdln.my.id/?to=&d=3</code>
                         </div>
                         <button onclick="copyLink()" class="p-3 bg-sage-800 text-white rounded-lg hover:bg-sage-900 transition-colors shrink-0" title="Salin Link">
                             <i class="fa-regular fa-copy"></i>
@@ -105,7 +123,7 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="border-b border-sage-100 text-xs font-semibold text-sage-500 uppercase">
-                            <th class="py-3 px-3">Nama Tamu</th>
+                            <th class="py-3 px-3">Nama Tamu & Tanggal</th>
                             <th class="py-3 px-3 text-right">Aksi</th>
                         </tr>
                     </thead>
@@ -129,6 +147,7 @@
     <script>
         const baseUrl = 'https://shfdln.my.id/';
         const guestNameInput = document.getElementById('guestName');
+        const eventDateSelect = document.getElementById('eventDate');
         const linkPreview = document.getElementById('linkPreview');
         const guestTableBody = document.getElementById('guestTableBody');
         const guestCount = document.getElementById('guestCount');
@@ -136,20 +155,34 @@
         // Ambil data riwayat dari LocalStorage saat halaman dimuat
         let guestHistory = JSON.parse(localStorage.getItem('wedding_guests')) || [];
 
+        const dateDetails = {
+            '1': { text: 'Senin, 31 Agustus 2026' },
+            '2': { text: 'Selasa, 01 September 2026' },
+            '3': { text: 'Rabu, 02 September 2026' }
+        };
+
         function getFormattedName() {
             return guestNameInput.value.trim();
         }
 
-        function getGeneratedLink(name) {
-            if (!name) return `${baseUrl}?to=`;
-            const encodedName = encodeURIComponent(name).replace(/%20/g, '+');
-            return `${baseUrl}?to=${encodedName}`;
+        function getSelectedDateCode() {
+            return eventDateSelect.value;
         }
 
-        guestNameInput.addEventListener('input', () => {
+        function getGeneratedLink(name, dCode) {
+            if (!name) return `${baseUrl}?to=&d=${dCode}`;
+            const encodedName = encodeURIComponent(name).replace(/%20/g, '+');
+            return `${baseUrl}?to=${encodedName}&d=${dCode}`;
+        }
+
+        function updatePreview() {
             const name = getFormattedName();
-            linkPreview.textContent = getGeneratedLink(name);
-        });
+            const dCode = getSelectedDateCode();
+            linkPreview.textContent = getGeneratedLink(name, dCode);
+        }
+
+        guestNameInput.addEventListener('input', updatePreview);
+        eventDateSelect.addEventListener('change', updatePreview);
 
         function copyLink() {
             const name = getFormattedName();
@@ -157,10 +190,11 @@
                 showToast('Silakan masukkan nama tamu terlebih dahulu!', false);
                 return;
             }
-            const link = getGeneratedLink(name);
+            const dCode = getSelectedDateCode();
+            const link = getGeneratedLink(name, dCode);
             
             navigator.clipboard.writeText(link).then(() => {
-                saveGuest(name);
+                saveGuest(name, dCode);
                 showToast('Link berhasil disalin & disimpan!', true);
             }).catch(() => {
                 showToast('Gagal menyalin link.', false);
@@ -174,13 +208,15 @@
                 return;
             }
 
-            saveGuest(name);
-            triggerWhatsApp(name);
+            const dCode = getSelectedDateCode();
+            saveGuest(name, dCode);
+            triggerWhatsApp(name, dCode);
         }
 
-        // Fungsi khusus untuk memicu pengiriman WhatsApp berdasarkan nama tertentu
-        function triggerWhatsApp(name) {
-            const link = getGeneratedLink(name);
+        function triggerWhatsApp(name, dCode) {
+            const link = getGeneratedLink(name, dCode);
+            const dateText = dateDetails[dCode] ? dateDetails[dCode].text : 'Rabu, 02 September 2026';
+            
             const caption = `Assalamu'alaikum Warahmatullahi Wabarakatuh.
 Bismillahirahmanirrahim.
 
@@ -190,7 +226,7 @@ Kepada Yth. Bapak/Ibu/Saudara/i,
 Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i untuk hadir dan memberikan doa restu pada acara pernikahan kami:
 
 *Fadlan & Sofi*
-Rabu, 02 September 2026
+${dateText}
 
 Berikut adalah tautan undangan pernikahan digital kami:
 ${link}
@@ -207,21 +243,18 @@ Hormat kami,
             window.open(waUrl, '_blank');
         }
 
-        // Menyimpan data ke LocalStorage dan memperbarui tabel
-        function saveGuest(name) {
-            // Cek apakah nama sudah ada (opsional, agar tidak duplikat persis)
-            const existingIndex = guestHistory.findIndex(item => item.toLowerCase() === name.toLowerCase());
+        function saveGuest(name, dCode) {
+            // Cek apakah kombinasi nama dan tanggal sudah ada di riwayat
+            const existingIndex = guestHistory.findIndex(item => item.name.toLowerCase() === name.toLowerCase() && item.dCode === dCode);
             if (existingIndex !== -1) {
-                // Pindahkan ke urutan paling atas jika sudah ada
                 guestHistory.splice(existingIndex, 1);
             }
-            guestHistory.unshift(name); // Tambah ke awal array
+            guestHistory.unshift({ name, dCode });
             
             localStorage.setItem('wedding_guests', JSON.stringify(guestHistory));
             renderTable();
         }
 
-        // Menghapus data dari riwayat
         function deleteGuest(index) {
             guestHistory.splice(index, 1);
             localStorage.setItem('wedding_guests', JSON.stringify(guestHistory));
@@ -229,12 +262,10 @@ Hormat kami,
             showToast('Data tamu berhasil dihapus.', true);
         }
 
-        // Mengirim ulang WhatsApp langsung dari baris tabel riwayat
-        function resendWhatsApp(name) {
-            triggerWhatsApp(name);
+        function resendWhatsApp(name, dCode) {
+            triggerWhatsApp(name, dCode);
         }
 
-        // Render data ke dalam tabel HTML
         function renderTable() {
             guestCount.textContent = `${guestHistory.length} Tamu`;
             
@@ -244,12 +275,16 @@ Hormat kami,
             }
 
             let html = '';
-            guestHistory.forEach((name, index) => {
+            guestHistory.forEach((item, index) => {
+                const dateText = dateDetails[item.dCode] ? dateDetails[item.dCode].text : '';
                 html += `
                     <tr class="hover:bg-sage-50/50 transition-colors">
-                        <td class="py-3 px-3 font-medium text-sage-800 break-all">${escapeHtml(name)}</td>
+                        <td class="py-3 px-3 font-medium text-sage-800 break-all">
+                            <div>${escapeHtml(item.name)}</div>
+                            <div class="text-xs text-sage-500 font-normal mt-0.5"><i class="fa-regular fa-calendar-days mr-1"></i>${dateText}</div>
+                        </td>
                         <td class="py-3 px-3 text-right space-x-1 whitespace-nowrap">
-                            <button onclick="resendWhatsApp('${escapeQuotes(name)}')" class="p-2 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors" title="Kirim Ulang WhatsApp">
+                            <button onclick="resendWhatsApp('${escapeQuotes(item.name)}', '${item.dCode}')" class="p-2 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-colors" title="Kirim Ulang WhatsApp">
                                 <i class="fa-brands fa-whatsapp"></i>
                             </button>
                             <button onclick="deleteGuest(${index})" class="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors" title="Hapus Data">
@@ -262,7 +297,6 @@ Hormat kami,
             guestTableBody.innerHTML = html;
         }
 
-        // Fungsi utilitas keamanan kecil untuk string HTML
         function escapeHtml(text) {
             return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
@@ -290,7 +324,8 @@ Hormat kami,
             }, 3000);
         }
 
-        // Render tabel saat pertama kali halaman dibuka
+        // Inisialisasi awal preview
+        updatePreview();
         renderTable();
     </script>
 </body>
